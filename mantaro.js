@@ -1,6 +1,15 @@
+const config = require("./config.json");
+const fetch = require("node-fetch");
+const hash = require("hash-code");
+const lookup = require("./lookup.js");
+
 /*******
  * API *
  *******/
+const allSend = (msg) => {
+	return Promise.all(Object.keys(config.users).map((user) => send(config.users[user].channel, user, msg)));
+};
+
 const api = "https://discordapp.com/api/v6";
 
 const get = (channel, user) => fetch(api + "/channels/" + config.channels[channel] + "/messages?limit=5", {
@@ -21,17 +30,12 @@ const send = (channel, user, msg) => fetch(api + "/channels/" + config.channels[
 }).then(sleep(config.intervals.send));
 
 /*****************
- * CONFIGURATION *
- *****************/
-const config = {};
-
-/*****************
  * DAILY CREDITS *
  *****************/
 const daily = () => {
 	const userKeys = Object.keys(config.users);
 	return Promise.all(userKeys.map((user) => send(config.users[user].channel, user, "->daily <@" + config.users[userKeys[user === userKeys[0] && userKeys.length > 1 ? 1 : 0]].uid + ">")));
-}
+};
 
 /****************
  * ITEM SWEEPER *
@@ -39,7 +43,7 @@ const daily = () => {
 const sweep = () => {
 	const userKeys = Object.keys(config.users);
 	return Promise.all(userKeys.map((user, i) => delay(i * config.intervals.sweep / userKeys.length).then(() => sweepUser(config.users[user].channel, user, userKeys[0]))));
-}
+};
 
 const sweepUser = async (channel, user, primary) => {
 	if (primary === user) {
@@ -66,13 +70,11 @@ const actions = ["->fish", "->loot", "->mine"];
 
 const answer = (messages) => {
 	if (msg = messages.find((msg) => msg.author.id === mantaroUID && msg.embeds.length > 0 && msg.embeds[0].author.name === "Trivia Game")) {
-		const answers = msg.embeds[0].fields[0].value.split("\n").map((cand) => Math.abs(cand.slice(8, -2).trim().hashCode()) & 0x7FF);
-		const question = msg.embeds[0].description.slice(2, -2).trim().hashCode() >> 15 & 0xFFFF;
+		const answers = msg.embeds[0].fields[0].value.split("\n").map((cand) => Math.abs(hash.hashCode(cand.slice(8, -2).trim())) & 0x7FF);
+		const question = hash.hashCode(msg.embeds[0].description.slice(2, -2).trim()) >> 15 & 0xFFFF;
 		return answers.indexOf(lookup[question]) + 1;
 	}
 };
-
-const lookup = {};
 
 const quiz = (games = -1) => {
 	const userKeys = Object.keys(config.users);
@@ -99,6 +101,11 @@ const run = async (channel, user, games, primary) => {
 	}
 };
 
+/**************
+ * REPUTATION *
+ **************/
+const rep = () => allSend("->rep <@" + config.users[Object.keys(config.users)[0]].uid + ">");
+
 /*************
  * UTILITIES *
  *************/
@@ -106,10 +113,9 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const sleep = (ms) => (x) => new Promise((resolve) => setTimeout(() => resolve(x), ms));
 
-String.prototype.hashCode = function() {
-	let hash = 0;
-	for (let i = 0; i < this.length; i++) {
-		hash = (hash << 5) - hash + this.charCodeAt(i) | 0;
-	}
-	return hash;
-};
+/***************
+ * WAIFU CLAIM *
+ ***************/
+const waifu = () => allSend("->waifu claim <@" + config.users[Object.keys(config.users)[0]].uid + ">");
+
+quiz();
