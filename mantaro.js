@@ -117,5 +117,3 @@ const sleep = (ms) => (x) => new Promise((resolve) => setTimeout(() => resolve(x
  * WAIFU CLAIM *
  ***************/
 const waifu = () => allSend("->waifu claim <@" + config.users[Object.keys(config.users)[0]].uid + ">");
-
-quiz();
