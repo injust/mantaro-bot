@@ -71,7 +71,7 @@ const sweepUser = async (channel, user, primary) => {
 	}
 	await send(channel, user, "->inv");
 	await sleep(config.intervals.send);
-	await get(channel, user, (msg) => msg.author.id === mantaroID && msg.content.includes("'s inventory:** ")).then((msg) => {
+	await get(channel, user, (msg) => msg.author.id === mantaroID && msg.content.includes("'s inventory:** ")).then(async (msg) => {
 		const inventory = msg.content.split("\n")[0].split("** ")[1].split(", ");
 		for (const item of inventory) {
 			[name, quantity] = item.split(" x ");
@@ -114,6 +114,6 @@ const run = async (channel, user, primary) => {
 /*************
  * UTILITIES *
  *************/
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms) => (x) => new Promise((resolve) => setTimeout(() => resolve(x), ms));
 
-const sleep = (ms) => (x) => new Promise((resolve) => setTimeout(() => resolve(x), ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
