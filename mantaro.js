@@ -1,3 +1,4 @@
+const Discord = require("discord.js");
 const config = require("./config.json");
 const fetch = require("node-fetch");
 const { hashCode } = require("hash-code");
@@ -18,8 +19,6 @@ const get = (channel, worker, filter) => fetch(`${api}/channels/${config.channel
 	}
 }).then((response) => response.json()).then((messages) => messages.find(filter));
 
-const mantaroID = "213466096718708737";
-
 const send = (channel, worker, msg) => {
 	console.log(`@${worker} in #${channel}: ${msg}`);
 	return fetch(`${api}/channels/${config.channels[channel].id}/messages`, {
@@ -32,6 +31,17 @@ const send = (channel, worker, msg) => {
 	});
 };
 
+/**************
+ * DISCORD.JS *
+ **************/
+const client = new Discord.Client({
+	disabledEvents: ["TYPING_START"]
+});
+
+client.login(config.bots.listener.token);
+
+client.on("warn", (info) => console.error(`WARN: ${info}`));
+
 /****************
  * ITEM SWEEPER *
  ****************/
@@ -41,7 +51,7 @@ const sweepUser = async (channel, worker, primary) => {
 	}
 	await send(channel, worker, "->inv");
 	await sleep(config.intervals.send);
-	await get(channel, worker, (msg) => msg.author.id === mantaroID && msg.content.includes("'s inventory:** ")).then(async (msg) => {
+	await get(channel, worker, (msg) => msg.author.id === config.bots.mantaro.id && msg.content.includes("'s inventory:** ")).then(async (msg) => {
 		const inventory = msg.content.split("\n")[0].split("** ")[1].split(", ");
 		for (const item of inventory) {
 			[name, quantity] = item.split(" x ");
@@ -75,7 +85,7 @@ const run = async (channel, worker, primary) => {
 		await send(channel, worker, `->game multiple trivia <@${config.workers[primary].id}> 5 -diff hard`);
 		await sleep(config.intervals.send);
 		for (let j = 0; j < 5; j++) {
-			await get(channel, worker, (msg) => msg.author.id === mantaroID && msg.embeds.length > 0 && msg.embeds[0].author.name === "Trivia Game").then((msg) => send(channel, primary, answer(msg)));
+			await get(channel, worker, (msg) => msg.author.id === config.bots.mantaro.id && msg.embeds.length > 0 && msg.embeds[0].author.name === "Trivia Game").then((msg) => send(channel, primary, answer(msg)));
 			await sleep(config.intervals.send);
 		}
 	}
@@ -91,6 +101,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 /***********
  * EXPORTS *
  ***********/
+exports.client = client;
+
 exports.daily = () => {
 	const workers = Object.keys(config.workers);
 	return Promise.all(workers.map((worker) => send(config.workers[worker].channel, worker, `->daily <@${config.workers[workers[worker === workers[0] && workers.length > 1 ? 1 : 0]].id}>`)));
