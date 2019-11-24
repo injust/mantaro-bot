@@ -1,0 +1,14 @@
+{
+	"name": "mantaro-bot",
+	"version": "1.0.0",
+	"main": "app.js",
+	"dependencies": {
+		"bufferutil": "^4.0.1",
+		"discord.js": "^11.5.1",
+		"erlpack": "^0.1.3",
+		"hash-code": "^1.0.1",
+		"node-fetch": "^2.6.0",
+		"zlib-sync": "^0.1.6",
+		"zucc": "^0.1.2"
+	}
+}

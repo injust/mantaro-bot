@@ -8,10 +8,10 @@ const exit = () => {
 
 mantaro.client.on("ready", async () => {
 	console.log(`Logged in as ${mantaro.client.user.tag}!`);
-	console.log("Commands: daily, quiz, rep, sweep, waifu")
 	if (process.argv.length > 2) {
 		await mantaro[process.argv[2]]().then(() => exit());
 	}
+	console.log("Commands: daily, quiz, rep, sweep, waifu")
 	repl.start({
 		eval: (cmd, context, filename, callback) => {
 			cmd = cmd.trim();
