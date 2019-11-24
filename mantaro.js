@@ -69,14 +69,16 @@ const sweepUser = async (channel, user, primary) => {
 	if (primary === user) {
 		return;
 	}
-	await send(channel, user, "->inv").then(sleep(config.intervals.send));
+	await send(channel, user, "->inv");
+	await sleep(config.intervals.send);
 	await get(channel, user).then(async (messages) => {
 		if (msg = messages.find((msg) => msg.author.id === mantaroID && msg.content.includes("'s inventory:** "))) {
 			const inventory = msg.content.split("\n")[0].split("** ")[1].split(", ");
 			for (const item of inventory) {
 				[name, quantity] = item.split(" x ");
 				if (name !== "💾" && name !== "⛏" && name !== "🎣" && !name.includes("lootbox:")) {
-					await send(channel, user, `->itemtransfer <@${config.users[primary].id}> ${name} ${quantity}`).then(sleep(config.intervals.sweep));
+					await send(channel, user, `->itemtransfer <@${config.users[primary].id}> ${name} ${quantity}`);
+					await sleep(config.intervals.sweep);
 				}
 			}
 		}
@@ -97,14 +99,18 @@ const answer = (messages) => {
 };
 
 const run = async (channel, user, primary) => {
-	await send(channel, user, "->opts lobby reset").then(sleep(config.intervals.send));
+	await send(channel, user, "->opts lobby reset");
+	await sleep(config.intervals.send);
 	for (let i = 0;; i++) {
 		if (i % config.modulo < 3) {
-			await send(channel, user, actions[i % config.modulo]).then(sleep(config.intervals.send));
+			await send(channel, user, actions[i % config.modulo]);
+			await sleep(config.intervals.send);
 		}
-		await send(channel, user, `->game multiple trivia <@${config.users[primary].id}> 5 -diff hard`).then(sleep(config.intervals.send));
+		await send(channel, user, `->game multiple trivia <@${config.users[primary].id}> 5 -diff hard`);
+		await sleep(config.intervals.send);
 		for (let j = 0; j < 5; j++) {
-			await get(channel, user).then((messages) => answer(messages)).then((ans) => send(channel, primary, ans)).then(sleep(config.intervals.send));
+			await get(channel, user).then((messages) => answer(messages)).then((ans) => send(channel, primary, ans));
+			await sleep(config.intervals.send);
 		}
 	}
 };
