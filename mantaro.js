@@ -18,7 +18,7 @@ exports.quiz = () => {
 	const numJobs = Math.trunc(userKeys.length / config.workersPerJob);
 	for (let j = 0; j < numJobs; j++) {
 		for (let w = 0; w < config.workersPerJob; w++) {
-			jobs.push(delay(config.intervals.send * (j / numJobs + w / config.workersPerJob)).then(() => run(config.users[userKeys[j * config.workersPerJob + w]].channel, userKeys[j * config.workersPerJob + w], userKeys[j * config.workersPerJob])));
+			jobs.push(sleep(config.intervals.send * (j / numJobs + w / config.workersPerJob)).then(() => run(config.users[userKeys[j * config.workersPerJob + w]].channel, userKeys[j * config.workersPerJob + w], userKeys[j * config.workersPerJob])));
 		}
 	}
 	return Promise.all(jobs);
@@ -28,7 +28,7 @@ exports.rep = () => allSend(`->rep <@${config.users[Object.keys(config.users)[0]
 
 exports.sweep = () => {
 	const userKeys = Object.keys(config.users);
-	return Promise.all(userKeys.map((user, i) => delay(i * config.intervals.sweep / userKeys.length).then(() => sweepUser(config.users[user].channel, user, userKeys[0]))));
+	return Promise.all(userKeys.map((user, i) => sleep(i * config.intervals.sweep / userKeys.length).then(() => sweepUser(config.users[user].channel, user, userKeys[0]))));
 };
 
 exports.waifu = () => allSend(`->waifu claim <@${config.users[Object.keys(config.users)[0]].id}>`);
