@@ -42,11 +42,11 @@ const allSend = (msg) => {
 
 const api = "https://discordapp.com/api/v6";
 
-const get = (channel, user) => fetch(`${api}/channels/${config.channels[channel].id}/messages?limit=5`, {
+const get = (channel, user, filter) => fetch(`${api}/channels/${config.channels[channel].id}/messages?limit=5`, {
 	headers: {
 		Authorization: config.users[user].token
 	}
-}).then((response) => response.json());
+}).then((response) => response.json()).then((messages) => messages.find(filter));
 
 const mantaroID = "213466096718708737";
 
@@ -71,15 +71,13 @@ const sweepUser = async (channel, user, primary) => {
 	}
 	await send(channel, user, "->inv");
 	await sleep(config.intervals.send);
-	await get(channel, user).then(async (messages) => {
-		if (msg = messages.find((msg) => msg.author.id === mantaroID && msg.content.includes("'s inventory:** "))) {
-			const inventory = msg.content.split("\n")[0].split("** ")[1].split(", ");
-			for (const item of inventory) {
-				[name, quantity] = item.split(" x ");
-				if (name !== "💾" && name !== "⛏" && name !== "🎣" && !name.includes("lootbox:")) {
-					await send(channel, user, `->itemtransfer <@${config.users[primary].id}> ${name} ${quantity}`);
-					await sleep(config.intervals.sweep);
-				}
+	await get(channel, user, (msg) => msg.author.id === mantaroID && msg.content.includes("'s inventory:** ")).then((msg) => {
+		const inventory = msg.content.split("\n")[0].split("** ")[1].split(", ");
+		for (const item of inventory) {
+			[name, quantity] = item.split(" x ");
+			if (name !== "💾" && name !== "⛏" && name !== "🎣" && !name.includes("lootbox:")) {
+				await send(channel, user, `->itemtransfer <@${config.users[primary].id}> ${name} ${quantity}`);
+				await sleep(config.intervals.sweep);
 			}
 		}
 	});
@@ -90,12 +88,10 @@ const sweepUser = async (channel, user, primary) => {
  ************/
 const actions = ["->fish", "->loot", "->mine"];
 
-const answer = (messages) => {
-	if (msg = messages.find((msg) => msg.author.id === mantaroID && msg.embeds.length > 0 && msg.embeds[0].author.name === "Trivia Game")) {
-		const answers = msg.embeds[0].fields[0].value.split("\n").map((cand) => Math.abs(hashCode(cand.slice(8, -2).trim())) & 0x7FF);
-		const question = hashCode(msg.embeds[0].description.slice(2, -2).trim()) >> 15 & 0xFFFF;
-		return answers.indexOf(lookup[question]) + 1;
-	}
+const answer = (msg) => {
+	const answers = msg.embeds[0].fields[0].value.split("\n").map((cand) => Math.abs(hashCode(cand.slice(8, -2).trim())) & 0x7FF);
+	const question = hashCode(msg.embeds[0].description.slice(2, -2).trim()) >> 15 & 0xFFFF;
+	return answers.indexOf(lookup[question]) + 1;
 };
 
 const run = async (channel, user, primary) => {
@@ -109,7 +105,7 @@ const run = async (channel, user, primary) => {
 		await send(channel, user, `->game multiple trivia <@${config.users[primary].id}> 5 -diff hard`);
 		await sleep(config.intervals.send);
 		for (let j = 0; j < 5; j++) {
-			await get(channel, user).then((messages) => answer(messages)).then((ans) => send(channel, primary, ans));
+			await get(channel, user, (msg) => msg.author.id === mantaroID && msg.embeds.length > 0 && msg.embeds[0].author.name === "Trivia Game").then((msg) => send(channel, primary, answer(msg)));
 			await sleep(config.intervals.send);
 		}
 	}
