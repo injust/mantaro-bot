@@ -3,35 +3,6 @@ const fetch = require("node-fetch");
 const { hashCode } = require("hash-code");
 const { lookup } = require("./lookup.js");
 
-/***********
- * EXPORTS *
- ***********/
-exports.daily = () => {
-	const workers = Object.keys(config.workers);
-	return Promise.all(workers.map((worker) => send(config.workers[worker].channel, worker, `->daily <@${config.workers[workers[worker === workers[0] && workers.length > 1 ? 1 : 0]].id}>`)));
-};
-
-exports.quiz = () => {
-	const workers = Object.keys(config.workers);
-	const jobs = [];
-	const numJobs = Math.trunc(workers.length / config.workersPerJob);
-	for (let j = 0; j < numJobs; j++) {
-		for (let w = 0; w < config.workersPerJob; w++) {
-			jobs.push(sleep(config.intervals.send * (j / numJobs + w / config.workersPerJob)).then(() => run(config.workers[workers[j * config.workersPerJob + w]].channel, workers[j * config.workersPerJob + w], workers[j * config.workersPerJob])));
-		}
-	}
-	return Promise.all(jobs);
-};
-
-exports.rep = () => allSend(`->rep <@${config.workers[Object.keys(config.workers)[0]].id}>`);
-
-exports.sweep = () => {
-	const workers = Object.keys(config.workers);
-	return Promise.all(workers.map((worker, i) => sleep(i * config.intervals.sweep / workers.length).then(() => sweepUser(config.workers[worker].channel, worker, workers[0]))));
-};
-
-exports.waifu = () => allSend(`->waifu claim <@${config.workers[Object.keys(config.workers)[0]].id}>`);
-
 /*******
  * API *
  *******/
@@ -116,3 +87,32 @@ const run = async (channel, worker, primary) => {
 const delay = (ms) => (x) => new Promise((resolve) => setTimeout(() => resolve(x), ms));
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/***********
+ * EXPORTS *
+ ***********/
+exports.daily = () => {
+	const workers = Object.keys(config.workers);
+	return Promise.all(workers.map((worker) => send(config.workers[worker].channel, worker, `->daily <@${config.workers[workers[worker === workers[0] && workers.length > 1 ? 1 : 0]].id}>`)));
+};
+
+exports.quiz = () => {
+	const workers = Object.keys(config.workers);
+	const jobs = [];
+	const numJobs = Math.trunc(workers.length / config.workersPerJob);
+	for (let j = 0; j < numJobs; j++) {
+		for (let w = 0; w < config.workersPerJob; w++) {
+			jobs.push(sleep(config.intervals.send * (j / numJobs + w / config.workersPerJob)).then(() => run(config.workers[workers[j * config.workersPerJob + w]].channel, workers[j * config.workersPerJob + w], workers[j * config.workersPerJob])));
+		}
+	}
+	return Promise.all(jobs);
+};
+
+exports.rep = () => allSend(`->rep <@${config.workers[Object.keys(config.workers)[0]].id}>`);
+
+exports.sweep = () => {
+	const workers = Object.keys(config.workers);
+	return Promise.all(workers.map((worker, i) => sleep(i * config.intervals.sweep / workers.length).then(() => sweepUser(config.workers[worker].channel, worker, workers[0]))));
+};
+
+exports.waifu = () => allSend(`->waifu claim <@${config.workers[Object.keys(config.workers)[0]].id}>`);
