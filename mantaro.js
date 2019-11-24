@@ -13,11 +13,7 @@ const allSend = (msg) => {
 
 const api = "https://discordapp.com/api/v6";
 
-const get = (channel, worker, filter) => fetch(`${api}/channels/${config.channels[channel].id}/messages?limit=5`, {
-	headers: {
-		Authorization: config.workers[worker].token
-	}
-}).then((response) => response.json()).then((messages) => messages.find(filter));
+const messages = {};
 
 const send = (channel, worker, msg) => {
 	console.log(`@${worker} in #${channel}: ${msg}`);
@@ -40,6 +36,12 @@ const client = new Discord.Client({
 
 client.login(config.bots.listener.token);
 
+client.on("message", (msg) => {
+	if (msg.author.id === config.bots.mantaro.id && (msg.content.includes("'s inventory:** ") || msg.embeds.length > 0 && msg.embeds[0].author.name === "Trivia Game")) {
+		messages[msg.channel.name] = msg;
+	}
+});
+
 client.on("warn", (info) => console.error(`WARN: ${info}`));
 
 /****************
@@ -51,16 +53,14 @@ const sweepUser = async (channel, worker, primary) => {
 	}
 	await send(channel, worker, "->inv");
 	await sleep(config.intervals.send);
-	await get(channel, worker, (msg) => msg.author.id === config.bots.mantaro.id && msg.content.includes("'s inventory:** ")).then(async (msg) => {
-		const inventory = msg.content.split("\n")[0].split("** ")[1].split(", ");
-		for (const item of inventory) {
-			[name, quantity] = item.split(" x ");
-			if (name !== "💾" && name !== "⛏" && name !== "🎣" && !name.includes("lootbox:")) {
-				await send(channel, worker, `->itemtransfer <@${config.workers[primary].id}> ${name} ${quantity}`);
-				await sleep(config.intervals.sweep);
-			}
+	const inventory = messages[channel].content.split("\n")[0].split("** ")[1].split(", ");
+	for (const item of inventory) {
+		[name, quantity] = item.split(" x ");
+		if (name !== "💾" && name !== "⛏" && name !== "🎣" && !name.includes("lootbox:")) {
+			await send(channel, worker, `->itemtransfer <@${config.workers[primary].id}> ${name} ${quantity}`);
+			await sleep(config.intervals.sweep);
 		}
-	});
+	}
 };
 
 /************
@@ -85,7 +85,7 @@ const run = async (channel, worker, primary) => {
 		await send(channel, worker, `->game multiple trivia <@${config.workers[primary].id}> 5 -diff hard`);
 		await sleep(config.intervals.send);
 		for (let j = 0; j < 5; j++) {
-			await get(channel, worker, (msg) => msg.author.id === config.bots.mantaro.id && msg.embeds.length > 0 && msg.embeds[0].author.name === "Trivia Game").then((msg) => send(channel, primary, answer(msg)));
+			send(channel, primary, answer(messages[channel]));
 			await sleep(config.intervals.send);
 		}
 	}
