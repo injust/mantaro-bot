@@ -12,7 +12,7 @@ const allSend = (msg) => {
 
 const api = "https://discordapp.com/api/v6";
 
-const get = (channel, user) => fetch(api + "/channels/" + config.channels[channel] + "/messages?limit=5", {
+const get = (channel, user) => fetch(`${api}/channels/${config.channels[channel]}/messages?limit=5`, {
 	headers: {
 		Authorization: config.users[user].token
 	}
@@ -20,8 +20,8 @@ const get = (channel, user) => fetch(api + "/channels/" + config.channels[channe
 
 const mantaroUID = "213466096718708737";
 
-const send = (channel, user, msg) => fetch(api + "/channels/" + config.channels[channel] + "/messages", {
-	body: '{"content": "' + msg + '"}',
+const send = (channel, user, msg) => fetch(`${api}/channels/${config.channels[channel]}/messages`, {
+	body: `{"content": "${msg}"}`,
 	headers: {
 		Authorization: config.users[user].token,
 		"Content-Type": "application/json"
@@ -34,7 +34,7 @@ const send = (channel, user, msg) => fetch(api + "/channels/" + config.channels[
  *****************/
 const daily = () => {
 	const userKeys = Object.keys(config.users);
-	return Promise.all(userKeys.map((user) => send(config.users[user].channel, user, "->daily <@" + config.users[userKeys[user === userKeys[0] && userKeys.length > 1 ? 1 : 0]].uid + ">")));
+	return Promise.all(userKeys.map((user) => send(config.users[user].channel, user, `->daily <@${config.users[userKeys[user === userKeys[0] && userKeys.length > 1 ? 1 : 0]].uid}>`)));
 };
 
 /****************
@@ -56,7 +56,7 @@ const sweepUser = async (channel, user, primary) => {
 			for (const item of inventory) {
 				[name, quantity] = item.split(" x ");
 				if (name !== "💾" && name !== "⛏" && name !== "🎣" && !name.includes("lootbox:")) {
-					await send(channel, user, "->itemtransfer <@" + config.users[primary].uid + "> " + name + " " + quantity).then(sleep(config.intervals.sweep - config.intervals.send));
+					await send(channel, user, `->itemtransfer <@${config.users[primary].uid}> ${name} ${quantity}`).then(sleep(config.intervals.sweep - config.intervals.send));
 				}
 			}
 		}
@@ -94,7 +94,7 @@ const run = async (channel, user, games, primary) => {
 		if (i % config.modulo < 3) {
 			await send(channel, user, actions[i % config.modulo]);
 		}
-		await send(channel, user, "->game multiple trivia <@" + config.users[primary].uid + "> 5 -diff hard");
+		await send(channel, user, `->game multiple trivia <@${config.users[primary].uid}> 5 -diff hard`);
 		for (let j = 0; j < 5; j++) {
 			await get(channel, user).then((messages) => answer(messages)).then((ans) => send(channel, primary, ans));
 		}
@@ -104,7 +104,7 @@ const run = async (channel, user, games, primary) => {
 /**************
  * REPUTATION *
  **************/
-const rep = () => allSend("->rep <@" + config.users[Object.keys(config.users)[0]].uid + ">");
+const rep = () => allSend(`->rep <@${config.users[Object.keys(config.users)[0]].uid}>`);
 
 /*************
  * UTILITIES *
@@ -116,4 +116,4 @@ const sleep = (ms) => (x) => new Promise((resolve) => setTimeout(() => resolve(x
 /***************
  * WAIFU CLAIM *
  ***************/
-const waifu = () => allSend("->waifu claim <@" + config.users[Object.keys(config.users)[0]].uid + ">");
+const waifu = () => allSend(`->waifu claim <@${config.users[Object.keys(config.users)[0]].uid}>`);
