@@ -1,8 +1,8 @@
 const Discord = require("discord.js");
 const config = require("./config.json");
 const fetch = require("node-fetch");
-const { hashCode } = require("hash-code");
-const { lookup } = require("./lookup.js");
+const hash = require("hash-code");
+const lookup = require("./lookup.js");
 
 /*******
  * API *
@@ -12,8 +12,6 @@ const allSend = (msg) => {
 };
 
 const api = "https://discordapp.com/api/v6";
-
-const messages = {};
 
 const send = (channel, worker, msg) => {
 	console.log(`@${worker} in #${channel}: ${msg}`);
@@ -44,6 +42,8 @@ client.on("message", (msg) => {
 
 client.on("warn", (info) => console.error(`WARN: ${info}`));
 
+const messages = {};
+
 /****************
  * ITEM SWEEPER *
  ****************/
@@ -69,8 +69,8 @@ const sweepUser = async (channel, worker, primary) => {
 const actions = ["->fish", "->loot", "->mine"];
 
 const answer = (msg) => {
-	const answers = msg.embeds[0].fields[0].value.split("\n").map((cand) => Math.abs(hashCode(cand.slice(8, -2).trim())) & 0x7FF);
-	const question = hashCode(msg.embeds[0].description.slice(2, -2).trim()) >> 15 & 0xFFFF;
+	const answers = msg.embeds[0].fields[0].value.split("\n").map((cand) => Math.abs(hash.hashCode(cand.slice(8, -2).trim())) & 0x7FF);
+	const question = hash.hashCode(msg.embeds[0].description.slice(2, -2).trim()) >> 15 & 0xFFFF;
 	return answers.indexOf(lookup[question]) + 1;
 };
 
