@@ -82,7 +82,7 @@ const run = async (channel, worker, primary) => {
 			await send(channel, worker, actions[i % config.modulo]);
 			await sleep(config.intervals.send);
 		}
-		if (messages[channel] != null && messages[channel][0].content === "✖") {
+		if (messages[channel] != null && messages[channel].content[0] === "✖") {
 			await send(channel, worker, "->opts lobby reset");
 			await sleep(config.intervals.send);
 		}
