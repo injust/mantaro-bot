@@ -1,0 +1,30 @@
+{
+	"bots": {
+		"listener": {
+			"id": "",
+			"token": ""
+		},
+		"mantaro": {
+			"id": "213466096718708737"
+		}
+	},
+	"channels": {
+		"": {
+			"id": "",
+			"user": ""
+		}
+	},
+	"intervals": {
+		"send": 3000,
+		"sweep": 25000
+	},
+	"modulo": 15,
+	"workers": {
+		"": {
+			"channel": "",
+			"id": "",
+			"token": ""
+		}
+	},
+	"workersPerJob": 3
+}
